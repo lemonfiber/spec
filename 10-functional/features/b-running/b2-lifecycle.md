@@ -5,7 +5,7 @@ kind: feature
 area: B
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 labels: [cli]
 requires: [G7]
 relates: [B1, B3, B8]
@@ -47,6 +47,17 @@ says afterwards comes down the event stream (`B2-R18`). One stream carries every
 job's lines, so a line a job said names that job; a surface following the start it
 asked for tells that start's lines from another's by the name it was answered with,
 not by when they happen to arrive (`B2-R19`).
+
+### A registry's rate limit is waited out, a bounded number of times
+
+A registry that hands out images may refuse one for its rate limit, and the container
+engine says so in its own words: `error from registry: retry-after:`, with the wait the
+registry asked for. That is the one failure where running the same command again a
+little later is what an operator would do, so the core does it for them: it waits and
+runs the command again, at most three more times, and says each wait as it starts it.
+Every other failure is reported the first time, because running again a command that
+failed for another reason only delays the report. Where the registry is still refusing
+after the last try, the refusal says so plainly (`B2-R22`).
 
 ### Every operation states what it will affect before doing it
 
@@ -161,6 +172,7 @@ Per form: `inactive`, `partial` (some services healthy), `active` (all healthy),
 | Port conflict on start | Name the port, the service, and the conflicting process where the OS allows. |
 | Image missing locally | Pull it, with progress. Don't fail with "no such image". |
 | Image pull fails | Report which image and why; leave already-started services running. |
+| A registry refuses an image for its rate limit | Wait and run the command again, at most three more times, saying each wait; then refuse as `LIFE-16`. Never run again on any other failure. |
 | A dependency never becomes ready, and the service needing it is left created | Report the dependency as it stands and the service as `failed`, not stopped, and keep counting the form the operator asked for. |
 | The start command itself fails | Read every addressed service and its dependencies once, and report each one's state; never report that no service fell short. |
 | Stopping a shared service | Refuse if another active form requires it; name that form. |
@@ -195,6 +207,7 @@ Per form: `inactive`, `partial` (some services healthy), `active` (all healthy),
 | **B2-R19** | A `start` or `pull` line on the event stream said by work a job names MUST carry that job's name, as the work's accepting reply carried it, so that a surface can tie each line to the start or fetch it asked for (`B2-R2`, `N2-R23`). |
 | **B2-R20** | A start that did not complete MUST report the state of every service it addressed and of the services those depend on, read once when it ends and without waiting for any of them to settle, and MUST NOT report that no service fell short (`B2-R3`, `N16-R6`). |
 | **B2-R21** | A container a start created and that never ran MUST be reported as `failed`, not `stopped`, and a form holding it MUST go on counting as brought (`B2-R10`). |
+| **B2-R22** | Where the container engine's output for a start, a fetch or a one-off run the core makes, a plugin's install and update among them, says a registry refused an image for its rate limit (`error from registry: retry-after:`), the core MUST run that command again, at most three more times, waiting before each 30, 60 and then 120 seconds or the longer wait the registry named, never more than 300 seconds, and MUST say each wait to the operator as it starts it, naming the rate limit, how long and which try follows; it MUST NOT run a command again for any other failure. Where the last try is refused for the rate limit too, a start, fetch or run MUST be refused as `LIFE-16`, naming the engine's line and the number of tries, a plugin's install MUST carry `LIFE-16` as the cause beneath its own refusal, and a plugin's update MUST name `LIFE-16` and the rate limit in why it stopped. |
 
 ## Related
 

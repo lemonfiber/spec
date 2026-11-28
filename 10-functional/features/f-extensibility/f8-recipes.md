@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P1
 labels: [extensibility, verification, security]
 requires: [F3, F4]
@@ -91,6 +91,13 @@ the approvals the install carried, and once it has held it does not run again un
 plugin is installed or updated again. It asks the operator for nothing, since a seed
 takes no inputs. One that fails leaves the claim and the install as they are, says what
 landed, and runs again at the next seed.
+
+A claim recipe is only for a plugin that claims a part: one declared by a plugin none of
+whose services speaks `owner.claim@1` would wait for an answer nothing gives, so the
+manifest is refused, naming the recipe. And a claim recipe may run more than once, so it
+is written to be run again: where the record of what lemonfiber last wrote could not be
+read when one held, that it held is not recorded, and it runs once more in the seed
+`lemonfiber adopt` makes, once that seed has formed the record again.
 
 ### An input is asked for before the yes
 
@@ -252,6 +259,8 @@ every step in the order given, and is not summarised into an outcome.
 | A call would carry a value somewhere reading the manifest allowed nothing to go, or outside without the approval of its pair | Refuse at the call, before anything is sent, naming the value, the destination and the step, and end the recipe. Reading the manifest is the first check and the call is the second, so a gap in the first is not a leak. |
 | A demand recipe carries a pair the operator approved at install | It is asked for again. An approval belongs to the act that carried it. |
 | A claim recipe's part is still open when the plugin is installed | It does not run then. It runs at the seed whose claim makes the part `Ours`, under the approvals the install carried. |
+| A claim recipe is declared by a plugin none of whose services speaks `owner.claim@1` | Refuse at validation as `PLUGIN-53`, naming the recipe. It would wait for an answer nothing gives. |
+| A claim recipe holds while the record of what lemonfiber last wrote cannot be read | That it held is not recorded, and it runs once more in the seed `lemonfiber adopt` makes, once that seed has formed the record again. A claim recipe is written to be run again. |
 | An install recipe fails after a call to an external host landed | The install goes back, and the account names that call as one that cannot be undone from here. |
 
 ## Acceptance criteria
@@ -277,7 +286,9 @@ every step in the order given, and is not summarised into an outcome.
 | **F8-R17** | While a recipe runs, each value it holds MUST carry the destinations it may be sent to: a credential-store value and every value captured from a call that carried or read one its own service alone, any other capture from a service in this stack that service and each destination of a released pair the operator approved in this act, and any other value the destinations its pairs name; a call carrying a value to any other destination, or to a host outside the stack without the approval of its pair, MUST be refused before it is sent, under a code of its own, ending the recipe. |
 | **F8-R18** | A release MUST be written on its `[[recipe.pair]]` as `release`, the sentence saying why the value is carried, and each released pair MUST be shown at install consent, and at every other act that carries it, as the value, the service it was read from, the destination and that sentence, and approved by the operator as itself; it MUST NOT be approved by approving the installation or another pair, and an act with a released pair not approved MUST NOT proceed. |
 | **F8-R19** | The plugin reading MUST list, for each recipe of a plugin, every input it asks the operator for, with its name, the question it asks and whether it is a secret, so that a surface can collect each before the operator agrees; a value given for a secret input MUST NOT be shown back by any reading or answer. |
-| **F8-R20** | A claim recipe MUST run once the part its plugin claims over `owner.claim@1` answers `Ours`: after an install or an update whose claim makes it `Ours`, once that act is recorded, and otherwise at the first seed that finds it `Ours`; it MUST run under the approvals the yes of the plugin's last install or update carried and no others, MUST NOT run again once a run of it has held until the plugin is installed or updated again, and MUST NOT ask the operator for an input, a manifest whose claim recipe does failing validation; one that fails MUST change no install record, MUST leave the claim in place, MUST be reported naming each call that had already reached somewhere, and MUST run again at the next seed. |
+| **F8-R20** | A claim recipe MUST run once the part its plugin claims over `owner.claim@1` answers `Ours`: after an install or an update whose claim makes it `Ours`, once that act is recorded, and otherwise at the first seed that finds it `Ours`; it MUST run under the approvals the yes of the plugin's last install or update carried and no others, MUST NOT run again once a run of it has held and been recorded (`F8-R22`) until the plugin is installed or updated again, and MUST NOT ask the operator for an input, a manifest whose claim recipe does failing validation; one that fails MUST change no install record, MUST leave the claim in place, MUST be reported naming each call that had already reached somewhere, and MUST run again at the next seed. |
+| **F8-R21** | A manifest declaring a recipe `on = "claim"` where none of the plugin's services speaks `owner.claim@1` MUST fail validation with a code of its own, `PLUGIN-53`, naming each such recipe, and the manifest MUST answer with that code whatever else is wrong with it, listing every fault. |
+| **F8-R22** | A claim recipe that holds where the record of what lemonfiber last wrote cannot be read MUST NOT be recorded as held, and MUST run again in the seed `lemonfiber adopt` makes, once that seed has formed the record again; a claim recipe MUST therefore be one that can run more than once. |
 
 ## Related
 
