@@ -208,7 +208,10 @@
 # refuses a claim recipe nothing claims for and `F8-R22` runs one again whose hold could not be
 # recorded. They are the core's, by the maintainer's decisions of 2026-11-28 (OPS-R31).
 #
-# 206 goals, seeded from the roadmap milestone this version serves;
+# `G11-R37` offers rehearsing a revocation beside the console's yes and never requires one; it is
+# the console's side of `ARCH-R469`, by the maintainer's decision of 2026-11-28 (OPS-R31).
+#
+# 207 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -422,6 +425,7 @@ goals   = [
     "F8-R22",
     "G11-R35",
     "G11-R36",
+    "G11-R37",
     "G10-R15",
     "G10-R16",
     "G10-R18",
