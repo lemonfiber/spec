@@ -146,7 +146,7 @@ the release of what it is built on, so where a service declares `built_on`, the 
 `Dockerfile` it built and hands it to `manifest-pin`, which writes it into
 `built_on.release` and into each proof of that service expecting the release it was
 built on, the way an upstream's release moves below, so `caddy.version` expects
-`v2.11.8 ` once `lemonfiber-caddy` builds on `caddy:2.11.8`; and a commit that changes nothing but the pin, its recordings,
+`v2.11.8` and a space once `lemonfiber-caddy` builds on `caddy:2.11.8`; and a commit that changes nothing but the pin, its recordings,
 its proofs and its `targets.toml` publishes no image. The proxy's image is Caddy's,
 rebuilt with the file capability removed, so it starts under `standard` ([lemonfiber-caddy](lemonfiber-caddy.md)), and
 the guarded door's is a Rust service of its own (ADR-0056); each is built in a
