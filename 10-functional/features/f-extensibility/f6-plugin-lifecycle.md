@@ -5,7 +5,7 @@ kind: feature
 area: F
 audience: operator
 status: accepted
-maturity: built
+maturity: building
 priority: P1
 labels: [extensibility, verification, updates]
 requires: [F3, F4, E4]
@@ -72,6 +72,11 @@ If the proofs fail, or the stack's verification fails, the install is **put back
 the journal — the same rollback machinery that reverses an apply, with the same honesty
 about what it cannot reverse. An operator is not left with a half-installed plugin and a
 broken sign-in.
+
+A directory the install made for its own services goes back with whatever its
+containers wrote into it, so a part whose install did not hold is offered that install
+again rather than read as having run here (`F6-R18`). A directory that was there before,
+or that anything else uses, is left as it was.
 
 Where the reversal itself cannot complete — a service unreachable, a value changed by hand
 in the meantime — the exact resulting state is reported. Never "something went wrong":
@@ -177,6 +182,7 @@ see why something is absent will try again.
 | **F6-R15** | Installing, updating and removing a plugin MUST each be an action of the web API, taking the argument the command takes and answering with the `plugins` envelope the command answers with (`F6-R13`, `ARCH-R48`). |
 | **F6-R16** | Rehearsing an install, an update or a removal MUST be reachable over the web API, MUST write nothing, and MUST answer with the account the command's rehearsal gives (`F6-R1`, `F6-R9`, `F6-R11`). |
 | **F6-R17** | Rehearsing an install, an update or a removal MUST answer with an offer naming what it read; the act MUST take that offer as its yes, alike at the command line and over the web API (`ARCH-R48`), MUST build it again from what is there when it runs, and MUST be refused, naming what moved, where the two differ ([ADR-0031](../../../00-overview/decisions/0031-a-plugin-and-a-choice-are-web-writes-a-credential-is-not.md)). |
+| **F6-R18** | Putting an install back MUST also remove, with everything inside it, each configuration directory and mount tree of the install's own services that the journal records as made by that same run, where it still holds something; it MUST NOT remove a directory the run did not record making, one another installed plugin's service is or shares the configuration of, one the stack's own services declare other than the one the install replaces, or one whose service the engine still holds a container for; it MUST NOT follow a link, and where a step from the stack's directory to the directory, or anything inside it, cannot be read or is a link leading out, it MUST leave the directory and everything in it and say which directory and why; the account of the reversal MUST name each directory it removed. |
 
 ## Related
 
