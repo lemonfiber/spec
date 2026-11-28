@@ -215,7 +215,11 @@
 # starts the stack's own service in its place only where that service had run here, so a part
 # never run here is offered its install again. It is the core's.
 #
-# 208 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R472` makes comics a kind of title a media server is asked `has_item` for, from
+# `media.serve@1` minor `7`. It is the core's, by the maintainer's
+# decision of 2026-11-28 (OPS-R31).
+#
+# 209 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -425,6 +429,7 @@ goals   = [
     "ARCH-R469",
     "ARCH-R470",
     "ARCH-R471",
+    "ARCH-R472",
     "B2-R22",
     "F8-R21",
     "F8-R22",

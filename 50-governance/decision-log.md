@@ -711,6 +711,8 @@ Decisions about a repository outside this organisation, such as
 | A registry refusing an image for its rate limit is waited out: the core runs the command again, a bounded number of times, only where the container engine reports that rate limit. The user chose a bounded backoff in the core | [B2-R22](../10-functional/features/b-running/b2-lifecycle.md) |
 | A claim recipe that held while the record of what lemonfiber last wrote could not be read runs once more after `lemonfiber adopt` forms it again. The user chose accepting the extra run | [F8-R22](../10-functional/features/f-extensibility/f8-recipes.md) |
 | A claim recipe in a plugin none of whose services speaks `owner.claim@1` is refused at validation. The user chose refusing it | [F8-R21](../10-functional/features/f-extensibility/f8-recipes.md) |
+| Comics is a kind of title: a media server is asked whether its library holds a comic, from the `media.serve@1` minor that adds the case, and the library-only walkthrough asks a server declaring `comics` for it. The user chose adding a comics kind | [ARCH-R472](../20-architecture/contracts/capability-contracts.md) |
+| The Rust SDK rehearses a revocation both through its `rehearse_*` methods and through a dry-run parameter, as the other SDKs take it. The user chose offering both | [ARCH-R469](../20-architecture/contracts/web-api.md) |
 | Rehearsing a revocation of a key, a phone's key or a wake address is offered in the operator's web console beside the yes and never required before it. The user chose offering it | [G11-R37](../10-functional/features/g-ux/g11-operator-web-console.md) |
 
 ## Related
