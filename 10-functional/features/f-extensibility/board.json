@@ -112,9 +112,9 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "built",
+      "maturity": "building",
       "shipped": null,
-      "milestones": ["M14"],
+      "milestones": ["M14", "M16"],
       "milestone": "M14",
       "priority": "P1",
       "labels": ["extensibility", "verification", "updates"],
@@ -122,7 +122,8 @@
       "relates": ["F5", "F7", "E3", "C9"],
       "versions": [
         {"version": "0.16.0", "status": "released"},
-        {"version": "0.18.0", "status": "staged"}
+        {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"}
       ],
       "path": "f-extensibility/f6-plugin-lifecycle.md"
     },
