@@ -188,7 +188,9 @@ Minting a key can hand it to a program as a claim: the console shows the claim l
 once, as text and as a scannable code, with when it lapses, and never the key's
 secret, which the program collects itself. The console lists each phone's hardware
 key and each phone that can be woken, and revokes or removes one on a yes naming
-it. A wake address is shown by its host and a short fingerprint, the only two
+it. Revoking a key, a phone's key or a wake address can be rehearsed first, which
+shows what it would come to and removes nothing; the yes does not wait for one. A
+wake address is shown by its host and a short fingerprint, the only two
 things the stack answers about it, because the whole address lets anyone holding
 it wake the phone.
 
@@ -199,8 +201,7 @@ interrupt; a backup can take one service alone; and a service that runs and exit
 can be run now, rehearsed first. Work that ended before it finished says whether
 its name was released or the work was let go, told apart from work that finished
 or failed, and putting away the record of work still running forgets its name
-without ending it: the console stops following it, and the work runs on and stays
-in the journal.
+without ending it: the console stops following it, and the work runs on.
 
 ### What this credential can do
 
@@ -256,7 +257,8 @@ member signed in to the same surface is shown none of it
 | **G11-R33** | Beside each service that runs and exits, the console MUST offer running it now (`run`, `ARCH-R438`), rehearsed first, showing whether a run was due and what held it back, and run only on a yes. |
 | **G11-R34** | A record whose work ended before it finished MUST say whether its name was released or the work was let go, told apart from work that finished, failed or is still running (`ARCH-R132`). Putting away the record of work still running MUST forget its name with `POST /api/jobs/{job}/forget` (`ARCH-R464`), never release it, and the record MUST say that the work runs on. |
 | **G11-R35** | The console MUST read `GET /api/capabilities` once per session (`ARCH-R78`). A panel whose read the credential cannot use MUST be drawn silenced with one sentence saying why, and a single control it cannot use MUST NOT be drawn. The console MUST NOT decide either from a version number. |
-| **G11-R36** | What `G11-R24` to `G11-R35` show MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown (`G10-R9`). |
+| **G11-R36** | What `G11-R24` to `G11-R35` and `G11-R37` show MUST be shown to the operator alone and MUST NOT appear anywhere a member is shown (`G10-R9`). |
+| **G11-R37** | Beside revoking an integration key, a phone's hardware key (`G11-R29`) or a phone's wake address (`G11-R30`), the console MUST offer rehearsing it (`ARCH-R469`), showing what the revocation would come to and removing nothing. The console MUST NOT require a rehearsal: the yes MUST revoke whether or not one was asked, and a rehearsal refused or failed MUST say so and MUST NOT hold back the yes. What a rehearsal shows MUST NOT include a key's secret or a whole wake address. |
 
 ## Notes
 
@@ -302,6 +304,7 @@ says for the app, and G11-R11 extends it to the restart and the switch, which th
 | `G11-R33` | `run` with `service` and `dry_run`; `ran`: `service`, `due`, `held`, `ran`, `skipped` | — |
 | `G11-R34` | `ended`: `job`, `action`, `ended` (`released`, `let-go`, `quiet`); `POST /api/jobs/{job}/forget` | — |
 | `G11-R35` | `capabilities`: each path with `available`, `unconfigured` or `unpermitted`, the revocations `/api/keys/{name}`, `/api/device-keys/{name}` and `/api/push-endpoints/{name}` among them; `scope` | — |
+| `G11-R37` | `DELETE /api/keys/{name}`, `DELETE /api/device-keys/{name}` and `DELETE /api/push-endpoints/{name}` with `{ "dry_run": true }`; `keys.revoked`, `device-keys.revoked`, `push-endpoints.removed`, `rehearsed`; `ASK-14` where the body is not `dry_run` alone | a key's secret, the whole address |
 
 ## Related
 
