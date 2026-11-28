@@ -26,6 +26,8 @@ and named, and the pull request is not armed to merge.
 from __future__ import annotations
 
 import copy
+import functools
+import operator
 import re
 import tomllib
 
@@ -140,8 +142,7 @@ def with_values(manifest: dict, values: dict[Path, str]) -> dict:
     """A parsed manifest with each place in `values` holding what it says."""
     moved = copy.deepcopy(manifest)
     for path, value in values.items():
-        holder = value_at(moved, path[:-1])
-        holder[path[-1]] = value
+        functools.reduce(operator.getitem, path[:-1], moved)[path[-1]] = value
     return moved
 
 
