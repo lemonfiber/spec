@@ -211,7 +211,11 @@
 # `G11-R37` offers rehearsing a revocation beside the console's yes and never requires one; it is
 # the console's side of `ARCH-R469`, by the maintainer's decision of 2026-11-28 (OPS-R31).
 #
-# 207 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R471` keeps a part whose install was put back as it was before the install: the reversal
+# starts the stack's own service in its place only where that service had run here, so a part
+# never run here is offered its install again. It is the core's.
+#
+# 208 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -420,6 +424,7 @@ goals   = [
     "ARCH-R468",
     "ARCH-R469",
     "ARCH-R470",
+    "ARCH-R471",
     "B2-R22",
     "F8-R21",
     "F8-R22",
