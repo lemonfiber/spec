@@ -508,6 +508,10 @@
 # choosing a curator takes out of its form every other curator each of whose media types
 # it files, leaves every curator of other media running, and is refused where another
 # curator files one of its media types beside one it does not.
+# `D1-R17` is amended in place by the maintainer's decision of 2026-11-28 (OPS-R31): a
+# request target fetching at a quality profile or filing into a root folder the curator
+# it reaches does not hold has that one replaced with the one a new registration with that
+# curator is given, and keeps one the curator holds.
 #
 # `ARCH-R427` lets a service declare the name its container knows itself by, refused where it
 # could read as a number, because the engine's own name for a container is drawn from its id
