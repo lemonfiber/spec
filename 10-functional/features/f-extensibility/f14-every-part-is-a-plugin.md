@@ -126,6 +126,17 @@ its `records and carry`; its download history does not. Accounts the old media s
 progress stays where it was recorded. Asking the household's members back is offered as
 part of the change.
 
+A curator stands in for the media it files. Choosing one for `library.curate` takes out of
+its form every other curator whose every media type the chosen one files, and leaves every
+other curator running: choosing a second curator of series stops the first, and the
+curators of films, music and books keep filing theirs. Every ask of `library.curate`,
+those asking for every curator included, then reaches the chosen curator in its place. A
+curator that files some of the chosen one's media and others besides would either leave
+two curators on one root folder or leave its other media with nothing filing them, so the
+choice is refused, naming that curator, what both file and what only it files. Undoing the
+choice brings the stopped curator back as it was, and choosing it again is a choice like any
+other, held to the same rule.
+
 ### The egress guard's shape
 
 The egress guard needs to manage the network and open a tunnel, which no other plugin may
@@ -223,7 +234,7 @@ nothing crosses to it.
 | **F14-R8** | The vocabulary MUST name `proxy.front`, `dashboard.show`, `quality.sync`, `archive.extract`, `stream.guard`, `invite.decline` and `request.gate`, each with a contract, and every capability in the vocabulary MUST be asked by something in the bundle or by the core over its contract. |
 | **F14-R9** | A plugin MAY ask for capabilities and MUST NOT link to a service by name. |
 | **F14-R10** | The stream guard's filler MUST enforce the guard the media server's filler declares, and every location the core gives a member MUST be built from templates the media server's filler declares. |
-| **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its configuration and data, and MUST journal the choice; undoing it MUST restore the choice and bring that part back with its configuration and data; and the rehearsal MUST say what does not carry over, read from the contracts ([ARCH-R362](../../../20-architecture/contracts/capability-contracts.md)): each kind of thing a capability the stopped part fills declares its filler holds, less each kind the substituted capability's contract carries where the part and its replacement both speak it. |
+| **F14-R11** | Substituting a filler MUST stop the part it replaces and take it out of its form while keeping its configuration and data, and MUST journal the choice; undoing it MUST restore the choice and bring that part back with its configuration and data; and the rehearsal MUST say what does not carry over, read from the contracts ([ARCH-R362](../../../20-architecture/contracts/capability-contracts.md)): each kind of thing a capability the stopped part fills declares its filler holds, less each kind the substituted capability's contract carries where the part and its replacement both speak it; where the capability is `library.curate`, the part a curator the operator chooses replaces MUST be every other curator each of whose media types the chosen one files, a curator's media types being those of the upstream it fronts where it is an adapter, every ask of `library.curate`, one asking for every filler included, MUST reach none of those, and a curator filing none of the chosen one's media types MUST NOT be stopped; choosing a curator MUST be refused, changing nothing, where another curator files both one of its media types and a media type it does not, naming that curator, the media types both file and those only that curator files. |
 | **F14-R12** | A plugin's service MAY declare `shape = "egress-guard"` only where it is the upstream an adapter of the same plugin fronts and that adapter speaks `network.egress-guard`, or where it is the plugin's one service and provides `network.egress-guard` itself, which lemonfiber MUST honour only where the bundle assembles the plugin and MUST refuse at install and update naming `service <id>.shape`; any other service declaring it MUST be refused at validation naming `service <id>.shape`; and lemonfiber MUST write that service's entry as every plugin's entry plus exactly the `NET_ADMIN` capability and the `/dev/net/tun` device, and MUST write neither for any other service. |
 | **F14-R13** | An adapter MUST declare the upstream releases it supports, each proved by its own recordings, an install or update MUST refuse a plugin whose adapter lists a release at a digest other than the one its recordings were taken from, and the core MUST NOT compare versions. |
 | **F14-R14** | `media.serve`, `indexer.search`, `library.curate` and `identity.source`, each of which a second plugin fills, MUST each be proved by a substitute other than its first-party filler, run end to end against its pinned upstream through install, its first-run flow, conformance, substitution, the features the capability serves, and undo, `library.curate` by one curator substituting another for a media type both declare; a substitute whose upstream is claimed against an account outside the house MUST also be run unclaimed through install and the reading that names it `Open`. |

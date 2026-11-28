@@ -504,6 +504,10 @@
 # maintainer's decision of 2026-11-06 (OPS-R31): a curator is proved by another standing
 # in for a media type both declare, and a substitute claimed against an account outside
 # the house is also run unclaimed through install and the reading that names it `Open`.
+# `F14-R11` is amended in place by the maintainer's decision of 2026-11-28 (OPS-R31):
+# choosing a curator takes out of its form every other curator each of whose media types
+# it files, leaves every curator of other media running, and is refused where another
+# curator files one of its media types beside one it does not.
 #
 # `ARCH-R427` lets a service declare the name its container knows itself by, refused where it
 # could read as a number, because the engine's own name for a container is drawn from its id

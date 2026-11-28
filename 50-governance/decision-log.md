@@ -712,6 +712,7 @@ Decisions about a repository outside this organisation, such as
 | A claim recipe that held while the record of what lemonfiber last wrote could not be read runs once more after `lemonfiber adopt` forms it again. The user chose accepting the extra run | [F8-R22](../10-functional/features/f-extensibility/f8-recipes.md) |
 | A claim recipe in a plugin none of whose services speaks `owner.claim@1` is refused at validation. The user chose refusing it | [F8-R21](../10-functional/features/f-extensibility/f8-recipes.md) |
 | Rehearsing a revocation of a key, a phone's key or a wake address is offered in the operator's web console beside the yes and never required before it. The user chose offering it | [G11-R37](../10-functional/features/g-ux/g11-operator-web-console.md) |
+| Choosing a curator passes over every other curator filing the same media types: choosing Medusa for series stops Sonarr, and Radarr, Lidarr and Bindery stay. The user chose passing over same-type curators, a core change | [F14-R11](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) |
 
 ## Related
 
