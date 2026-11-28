@@ -714,6 +714,7 @@ Decisions about a repository outside this organisation, such as
 | Comics is a kind of title: a media server is asked whether its library holds a comic, from the `media.serve@1` minor that adds the case, and the library-only walkthrough asks a server declaring `comics` for it. The user chose adding a comics kind | [ARCH-R472](../20-architecture/contracts/capability-contracts.md) |
 | The Rust SDK rehearses a revocation both through its `rehearse_*` methods and through a dry-run parameter, as the other SDKs take it. The user chose offering both | [ARCH-R469](../20-architecture/contracts/web-api.md) |
 | Rehearsing a revocation of a key, a phone's key or a wake address is offered in the operator's web console beside the yes and never required before it. The user chose offering it | [G11-R37](../10-functional/features/g-ux/g11-operator-web-console.md) |
+| Choosing a curator passes over every other curator filing the same media types: choosing Medusa for series stops Sonarr, and Radarr, Lidarr and Bindery stay. The user chose passing over same-type curators, a core change | [F14-R11](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) |
 
 ## Related
 
