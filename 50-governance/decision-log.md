@@ -716,6 +716,7 @@ Decisions about a repository outside this organisation, such as
 | The Rust SDK rehearses a revocation both through its `rehearse_*` methods and through a dry-run parameter, as the other SDKs take it. The user chose offering both | [ARCH-R469](../20-architecture/contracts/web-api.md) |
 | Rehearsing a revocation of a key, a phone's key or a wake address is offered in the operator's web console beside the yes and never required before it. The user chose offering it | [G11-R37](../10-functional/features/g-ux/g11-operator-web-console.md) |
 | Choosing a curator passes over every other curator filing the same media types: choosing Medusa for series stops Sonarr, and Radarr, Lidarr and Bindery stay. The user chose passing over same-type curators, a core change | [F14-R11](../10-functional/features/f-extensibility/f14-every-part-is-a-plugin.md) |
+| A request target keeps the quality profile and root folder it fetches at while the curator it reaches holds them, and one that curator does not hold, as after choosing another curator for the media type, is replaced with the one a new registration is given. The user chose replacing only what the curator does not hold | [D1-R17](../10-functional/features/d-content/d1-seed.md) |
 
 ## Related
 

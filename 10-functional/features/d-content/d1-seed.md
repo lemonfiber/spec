@@ -125,6 +125,13 @@ makes [D4](d4-request-flow.md)'s promise true: television is not offered where
 Sonarr is not running. Registering one that is absent would offer the household a
 thing that cannot arrive.
 
+A target keeps the quality profile and root folder it fetches at while the curator it
+reaches holds them, so a choice the operator made in Seerr stands. One the curator does
+not hold is replaced with the one a new registration is given. A change of curator
+needs it: the target at a route names the profile and folder of the curator that
+fulfilled it before, and the request gate refuses a request at a profile or folder the
+curator it asks does not hold.
+
 ### Idempotent, and drift-aware
 
 Running seed twice changes nothing. Crucially, it does **not** re-assert values
@@ -248,7 +255,7 @@ Per connection:
 | **D1-R14** | A full seed against a healthy stack SHOULD complete within 60 seconds. |
 | **D1-R15** | Bindery MUST be wired via Torznab endpoints, and the absence of Prowlarr app sync MUST be documented in-product. |
 | **D1-R16** | lemonfiber MUST mint the torrent client's WebUI account at install, hand it to the client before it first starts and to the adapter in front of it, and MUST NOT leave the client on the temporary password it makes for itself. |
-| **D1-R17** | Each curator that fulfils requests MUST be registered with the request service as a fulfilment target, and one absent from the stack MUST NOT be. |
+| **D1-R17** | Each curator that fulfils requests MUST be registered with the request service as a fulfilment target, and one absent from the stack MUST NOT be; where a target the request service holds fetches at a quality profile or files into a root folder that the curator it reaches does not hold, as where another curator has come to fulfil its media type, that one MUST be replaced with the one a target registered anew with that curator is given, and one the curator holds MUST be kept as the target holds it. |
 | **D1-R18** | Every connection named in the wiring graph MUST be made where the services at both ends are in the stack, and each MUST be proven against the service that received it rather than against a stand-in for it. |
 | **D1-R19** | The request service MUST reach each fulfilling curator and the media server only through the request gate: each curator MUST be registered with it at the gate's route for the media type it files and with the token lemonfiber minted for that route, never with the curator's own key, and it MUST be left holding no media server API key and no media server administrator's session ([ADR-0032](../../../00-overview/decisions/0032-the-request-service-reaches-the-arrs-through-a-gate.md)). |
 | **D1-R20** | Once the request service is initialised, lemonfiber MUST authenticate to it with the request service's own API key and MUST NOT send it the media server administrator's password; the password the initialising sign-in carried MUST be rotated once that sign-in completes. |
