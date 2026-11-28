@@ -399,6 +399,20 @@ service, size, address or state of the stack (`G4-R16`):
 | `WISH-14` | `409` | the member's asks wait for a yes and go through whoever runs the house, so nothing was asked for |
 | `WISH-15` | `503` | a title the member's own search just found could not be looked up again, so they are asked to try again |
 
+Why asking was not working is the operator's to read and nobody else's. Each cause a
+`WISH-8` folds has a code of its own in the registry's `ASKING` family: the stack's
+description not read, nowhere to keep asks, the request service or the media server not
+reached, the household, a member's limits or their allowance not read, a search, a lookup
+or an ask not answered, an ask neither approved nor held for approval, a member's account
+not linked, an ask not written down, a curator not answering, and a picture not reached.
+The core keeps the cause's code and the moment, and nothing else about the failure: an
+upstream error can carry an address holding a key, a header or the body of an answer, so
+none of it is kept. `lemonfiber doctor` reads them under `services.household-asking`,
+warning with every cause kept from the last day, each by its code, the sentence the registry
+declares for it, how many times it happened and when last, and passing where none was kept.
+The member's refusal is the same `WISH-8` it was, and no answer or event a member reads
+carries a cause or its code (`ARCH-R470`).
+
 ### When a request is refused
 
 The body of every refusal is the error envelope, the same one `--json` renders, and its
@@ -933,6 +947,7 @@ again, the payload's type and how an instant is written — are on
 | **ARCH-R467** | The contract artefact MUST list every route the web API serves as `routes`, each by its method and its path as the surface routes it, with the body it takes where it takes one (`ARCH-R133`) and the kinds it answers with, `DELETE` routes and the routes that are neither a read nor an action included, generated from what the surface routes by rather than written beside it. CI MUST fail where the surface serves a route the list does not name, and each SDK's CI MUST fail where the SDK calls a route at a method or a path the list does not give. |
 | **ARCH-R468** | `GET /api/capabilities` MUST name `/api/keys/{name}`, `/api/device-keys/{name}` and `/api/push-endpoints/{name}`, the revocations the surface serves, each with the state its route answers this credential with (`ARCH-R79`), decided where that route decides it. |
 | **ARCH-R469** | `DELETE /api/keys/{name}`, `DELETE /api/device-keys/{name}` and `DELETE /api/push-endpoints/{name}` MUST take an optional body `{ "dry_run": … }`; given `true`, each MUST remove nothing and MUST answer with the envelope the command's rehearsal renders, which says it was a rehearsal (`ARCH-R131`), and without a body or given `false` each MUST remove what it names. |
+| **ARCH-R470** | Where a member's search, ask, list of kinds, cover or picture is refused as `WISH-8`, the core MUST keep the cause as the code the registry declares for it in the `ASKING` family, with the moment, and nothing else about the failure — no address, header, answer or other text an upstream error carries. `lemonfiber doctor` and the `diagnose` action MUST report, under the check `services.household-asking`, every cause kept from the last 24 hours, each by its code, the sentence the registry declares for it, how many times it was kept and the last moment, as a warning under the code of the most recent, and MUST pass where none was kept. No answer to a member's session or a key scoped to a member, and no event on a member's stream, MUST carry a cause or its code: the refusal MUST stay `WISH-8` with its household sentence and remedy (`G4-R16`). |
 
 ## The artefact
 

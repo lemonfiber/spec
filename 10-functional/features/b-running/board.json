@@ -32,9 +32,9 @@
       "audience": "operator",
       "kind": "feature",
       "status": "accepted",
-      "maturity": "built",
+      "maturity": "building",
       "shipped": null,
-      "milestones": ["M6", "M9", "M14"],
+      "milestones": ["M6", "M9", "M14", "M16"],
       "milestone": "M6",
       "priority": null,
       "labels": ["cli"],
@@ -43,6 +43,7 @@
       "versions": [
         {"version": "0.15.0", "status": "released"},
         {"version": "0.18.0", "status": "staged"},
+        {"version": "0.19.0", "status": "planned"},
         {"version": "0.8.0", "status": "released"}
       ],
       "path": "b-running/b2-lifecycle.md"

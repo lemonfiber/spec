@@ -98,6 +98,7 @@ first-party one, and fixing a manifest one error per run is a guessing game.
 | No `{{name}}` in a call's `to`, or in its `path` but for a query value (`F8-R2`) | Step and field named |
 | No `{{name}}` in a header's name (`F8-R2`) | Step and header named, as `PLUGIN-33` |
 | Every call's `path` is a plain absolute path (`F8-R2`) | Step named, with what is wrong with it, as `PLUGIN-37` |
+| A recipe `on = "claim"` is declared only where a service of the plugin speaks `owner.claim@1` (`F8-R21`) | Recipe named, as `PLUGIN-53` |
 | Every `origin` is one of the four, and agrees with where the value comes from (`F8-R3`) | Value named, with both origins |
 | A credential-store value, and every capture from a call that carried or read one, is carried, by a pair or a `{{name}}`, or read by a guard, only to the service it belongs to, and any other capture from a service in this stack only to that service or by a pair releasing it (`F8-R16`) | Value, the service it is held to and the destination named |
 | A pair's `release` is on a capture from a service in this stack, by a call that carried and read no credential-store value, carried to another destination, and nowhere else (`F8-R16`) | Pair named |

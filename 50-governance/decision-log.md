@@ -703,6 +703,15 @@ Decisions about a repository outside this organisation, such as
 | The bump also moves the release inside string values of a proof's `json` expectation, and replaces every standalone naming of the old release in an expectation and arms the pull request; a naming it cannot replace with certainty, such as one written through an escape, is left, named and not armed. `REPO-R98` carries the rule. The user chose JSON string values, every occurrence, and the rule in place | [REPO-R98](../30-repos/first-party-plugins.md#how-its-upstream-pins-move) |
 | The same move applies when lemonfiber's own image pin changes: the release the image is built on, the tag its `Dockerfile`'s last `FROM` names, moves into the service's `built_on.release` and the proofs expecting it, so the Caddy plugin's proof follows its image without a human follow-up. `OPS-R91` is amended in place. The user chose extending it | [OPS-R91](../70-operations/releasing.md) |
 
+## 2026-11-28
+
+| Decision | Where it lives |
+|---|---|
+| Why a member's ask was not working is the operator's: each cause folded into `WISH-8` keeps a code of its own, which `lemonfiber doctor` names, and the member is still told nothing about the cause. The user chose the operator's journal or doctor naming the cause's code | [ARCH-R470](../20-architecture/contracts/web-api.md) |
+| A registry refusing an image for its rate limit is waited out: the core runs the command again, a bounded number of times, only where the container engine reports that rate limit. The user chose a bounded backoff in the core | [B2-R22](../10-functional/features/b-running/b2-lifecycle.md) |
+| A claim recipe that held while the record of what lemonfiber last wrote could not be read runs once more after `lemonfiber adopt` forms it again. The user chose accepting the extra run | [F8-R22](../10-functional/features/f-extensibility/f8-recipes.md) |
+| A claim recipe in a plugin none of whose services speaks `owner.claim@1` is refused at validation. The user chose refusing it | [F8-R21](../10-functional/features/f-extensibility/f8-recipes.md) |
+
 ## Related
 
 - [Change lifecycle](change-lifecycle.md)

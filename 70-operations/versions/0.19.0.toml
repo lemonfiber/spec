@@ -203,7 +203,12 @@
 # rehearsed as an action is. They are the core's and the SDKs', by the maintainer's decisions of
 # 2026-11-27 (OPS-R31).
 #
-# 202 goals, seeded from the roadmap milestone this version serves;
+# `ARCH-R470` keeps the cause of each `WISH-8` as a code of its own that the doctor names and no
+# member reads; `B2-R22` waits out a registry's rate limit a bounded number of times; `F8-R21`
+# refuses a claim recipe nothing claims for and `F8-R22` runs one again whose hold could not be
+# recorded. They are the core's, by the maintainer's decisions of 2026-11-28 (OPS-R31).
+#
+# 206 goals, seeded from the roadmap milestone this version serves;
 # frozen at stage-version (OPS-R30).
 # [pins] is written by release-finalize at publish (OPS-R35); left out while planned.
 #
@@ -411,6 +416,10 @@ goals   = [
     "ARCH-R467",
     "ARCH-R468",
     "ARCH-R469",
+    "ARCH-R470",
+    "B2-R22",
+    "F8-R21",
+    "F8-R22",
     "G11-R35",
     "G11-R36",
     "G10-R15",

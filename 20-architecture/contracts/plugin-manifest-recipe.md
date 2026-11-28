@@ -318,6 +318,14 @@ the claim in place; the act that ran it reports it as `PLUGIN-36`, `PLUGIN-35` o
 `PLUGIN-38` reports an install recipe's failure, and the next seed runs it again
 (`F8-R20`).
 
+A claim recipe waits for the part a service of its own plugin claims, so a manifest
+declaring one while none of its services speaks `owner.claim@1` is refused with a code of
+its own, `PLUGIN-53`, naming the recipe, whatever else is wrong with it (`F8-R21`). And a
+claim recipe can run more than once, so write each step to tolerate the part being furnished
+already: where the record of what lemonfiber last wrote could not be read when a run held,
+that it held is not recorded, and the seed `lemonfiber adopt` makes runs it once more, once
+it has formed the record again (`F8-R22`).
+
 A pair carrying a value to a host outside the stack is approved as itself, as
 `<value>@<destination>`, and so is a pair carrying a release. The consent names
 a released pair as the value, the service it was read from (`from`), the destination
